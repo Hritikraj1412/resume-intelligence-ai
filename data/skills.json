@@ -1,0 +1,179 @@
+{
+  "programming_languages": {
+    "python": [
+      "python",
+      "python3"
+    ],
+    "java": [
+      "java"
+    ],
+    "javascript": [
+      "javascript",
+      "ecmascript"
+    ],
+    "typescript": [
+      "typescript",
+      "ts"
+    ],
+    "c": [
+      "c"
+    ],
+    "c++": [
+      "c++",
+      "cpp"
+    ]
+  },
+
+  "frontend": {
+    "html": [
+      "html",
+      "html5"
+    ],
+    "css": [
+      "css",
+      "css3"
+    ],
+    "react": [
+      "react",
+      "react.js",
+      "reactjs",
+      "react js"
+    ],
+    "next.js": [
+      "next",
+      "next.js",
+      "nextjs",
+      "next js"
+    ]
+  },
+
+  "backend": {
+    "node.js": [
+      "node",
+      "node.js",
+      "nodejs",
+      "node js"
+    ],
+    "express": [
+      "express",
+      "express.js",
+      "expressjs"
+    ],
+    "flask": [
+      "flask"
+    ],
+    "fastapi": [
+      "fastapi",
+      "fast api"
+    ],
+    "django": [
+      "django"
+    ],
+    "rest api": [
+      "rest api",
+      "restful api",
+      "rest apis",
+      "restful apis"
+    ]
+  },
+
+  "databases": {
+    "mysql": [
+      "mysql"
+    ],
+    "mongodb": [
+      "mongodb",
+      "mongo db",
+      "mongo"
+    ],
+    "postgresql": [
+      "postgresql",
+      "postgres",
+      "postgres db"
+    ],
+    "sql": [
+      "sql"
+    ]
+  },
+
+  "data_science": {
+    "pandas": [
+      "pandas"
+    ],
+    "numpy": [
+      "numpy"
+    ],
+    "plotly": [
+      "plotly"
+    ],
+    "streamlit": [
+      "streamlit"
+    ],
+    "requests": [
+      "requests",
+      "requests api"
+    ]
+  },
+
+  "ai_ml": {
+    "machine learning": [
+      "machine learning",
+      "machine-learning",
+      "machinelearning",
+      "ml"
+    ],
+    "deep learning": [
+      "deep learning",
+      "deep-learning",
+      "deeplearning",
+      "dl"
+    ],
+    "artificial intelligence": [
+      "artificial intelligence",
+      "artificial-intelligence",
+      "ai"
+    ],
+    "natural language processing": [
+      "natural language processing",
+      "nlp"
+    ],
+    "tensorflow": [
+      "tensorflow",
+      "tensor flow"
+    ],
+    "pytorch": [
+      "pytorch",
+      "py torch"
+    ],
+    "scikit-learn": [
+      "scikit-learn",
+      "scikit learn",
+      "sklearn"
+    ],
+    "opencv": [
+      "opencv",
+      "open cv"
+    ]
+  },
+
+  "tools": {
+    "git": [
+      "git"
+    ],
+    "github": [
+      "github",
+      "github.com"
+    ],
+    "docker": [
+      "docker"
+    ],
+    "aws": [
+      "aws",
+      "amazon web services"
+    ],
+    "azure": [
+      "azure",
+      "microsoft azure"
+    ]
+  }
+}

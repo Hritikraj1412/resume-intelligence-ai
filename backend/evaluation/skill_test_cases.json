@@ -1,0 +1,72 @@
+[
+  {
+    "text": "I have experience with Python, JavaScript, React, Node.js and SQL.",
+    "expected": [
+      "javascript",
+      "node.js",
+      "python",
+      "react",
+      "sql"
+    ]
+  },
+  {
+    "text": "Built applications using ReactJS, Express.js, MongoDB and Docker.",
+    "expected": [
+      "docker",
+      "express",
+      "mongodb",
+      "react"
+    ]
+  },
+  {
+    "text": "Worked with machine learning, scikit-learn, Pandas and NumPy.",
+    "expected": [
+      "machine learning",
+      "numpy",
+      "pandas",
+      "scikit-learn"
+    ]
+  },
+  {
+    "text": "Developed REST APIs using FastAPI and Python.",
+    "expected": [
+      "fastapi",
+      "python",
+      "rest api"
+    ]
+  },
+  {
+    "text": "Frontend development using HTML, CSS, Next.js and TypeScript.",
+    "expected": [
+      "css",
+      "html",
+      "next.js",
+      "typescript"
+    ]
+  },
+  {
+    "text": "Used AWS, Git, GitHub and Docker for deployment.",
+    "expected": [
+      "aws",
+      "docker",
+      "git",
+      "github"
+    ]
+  },
+  {
+    "text": "Worked on Java and C++ programming projects.",
+    "expected": [
+      "c++",
+      "java"
+    ]
+  },
+  {
+    "text": "Built a data dashboard using Python, Pandas, Plotly and Streamlit.",
+    "expected": [
+      "pandas",
+      "plotly",
+      "python",
+      "streamlit"
+    ]
+  }
+]

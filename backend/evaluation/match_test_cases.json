@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "label": "strong_match",
+    "resume_text": "Software Developer with experience in Python, JavaScript, React, Node.js, SQL, Git and REST APIs. Built scalable web applications using React and Node.js. Developed REST APIs and worked with SQL databases.",
+    "job_description": "Software Developer. Requirements: Python, JavaScript, React, Node.js, SQL, Git and REST APIs. Responsibilities: Develop scalable web applications and build REST APIs."
+  },
+  {
+    "id": 2,
+    "label": "strong_match",
+    "resume_text": "Frontend Developer experienced with JavaScript, React, HTML, CSS and Next.js. Built responsive web applications and modern user interfaces using React and Next.js.",
+    "job_description": "Frontend Developer. Requirements: JavaScript, React, HTML, CSS and Next.js. Responsibilities: Build responsive web interfaces and develop modern frontend applications."
+  },
+  {
+    "id": 3,
+    "label": "moderate_match",
+    "resume_text": "Full Stack Developer with Python, JavaScript, React and Node.js experience. Built web applications using React and Node.js. Limited experience with SQL and REST APIs.",
+    "job_description": "Software Developer. Requirements: Python, JavaScript, React, Node.js, SQL, Git and REST APIs. Responsibilities: Develop scalable applications and backend APIs."
+  },
+  {
+    "id": 4,
+    "label": "moderate_match",
+    "resume_text": "Python Developer experienced with Python, Pandas, NumPy and SQL. Built data analysis dashboards and automation tools using Python.",
+    "job_description": "Data Analyst. Requirements: Python, SQL, Pandas, NumPy and data visualization. Responsibilities: Analyze datasets, build dashboards and generate business insights."
+  },
+  {
+    "id": 5,
+    "label": "weak_match",
+    "resume_text": "Graphic Designer experienced with Photoshop, Illustrator, branding, typography and visual design. Created posters, logos and marketing materials.",
+    "job_description": "Software Developer. Requirements: Python, JavaScript, React, Node.js, SQL and Git. Responsibilities: Build web applications and REST APIs."
+  },
+  {
+    "id": 6,
+    "label": "weak_match",
+    "resume_text": "Mechanical Engineer experienced with AutoCAD, SolidWorks, manufacturing processes and mechanical design.",
+    "job_description": "Frontend Developer. Requirements: JavaScript, React, HTML, CSS and Next.js. Responsibilities: Build responsive web applications."
+  },
+  {
+    "id": 7,
+    "label": "strong_match",
+    "resume_text": "Machine Learning Engineer experienced with Python, Machine Learning, Scikit-learn, Pandas, NumPy and TensorFlow. Built predictive models and classification systems.",
+    "job_description": "Machine Learning Engineer. Requirements: Python, Machine Learning, Scikit-learn, Pandas and NumPy. Responsibilities: Build and evaluate machine learning models."
+  },
+  {
+    "id": 8,
+    "label": "moderate_match",
+    "resume_text": "Python Developer experienced with Python and Flask. Built REST APIs and backend services. Basic knowledge of SQL and Docker.",
+    "job_description": "Backend Developer. Requirements: Python, FastAPI, REST APIs, PostgreSQL and Docker. Responsibilities: Develop backend services and REST APIs."
+  },
+  {
+    "id": 9,
+    "label": "weak_match",
+    "resume_text": "Digital Marketing Specialist experienced with SEO, social media marketing, Google Ads and content strategy.",
+    "job_description": "Backend Developer. Requirements: Python, FastAPI, REST APIs, PostgreSQL and Docker. Responsibilities: Develop backend services."
+  },
+  {
+    "id": 10,
+    "label": "strong_match",
+    "resume_text": "Full Stack Developer experienced with React, Node.js, Express, MongoDB, JavaScript and REST APIs. Built full stack web applications and backend services using Node.js and Express.",
+    "job_description": "Full Stack Developer. Requirements: JavaScript, React, Node.js, Express, MongoDB and REST APIs. Responsibilities: Build full stack web applications and backend services."
+  }
+]
