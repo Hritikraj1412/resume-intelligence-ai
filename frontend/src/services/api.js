@@ -1,8 +1,13 @@
 
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000",
+  baseURL: import.meta.env.PROD
+    ? "https://resume-intelligence-ai-q61p.onrender.com"
+    : import.meta.env.VITE_API_URL || "http://127.0.0.1:8000",
+  timeout: 120000,
 });
 
 export const uploadResume = async (file) => {
