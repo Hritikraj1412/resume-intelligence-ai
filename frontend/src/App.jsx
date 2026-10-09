@@ -619,17 +619,9 @@ function App() {
                                     </p>
 
 
-                                    <div className="confidence">
-
-                                        <span>
-                                            Confidence
-                                        </span>
-
-                                        <strong>
-                                            {classificationConfidence.toFixed(1)}%
-                                        </strong>
-
-                                    </div>
+                                   <div className="classification-note">
+    Rule-based classification — not a probability of correctness.
+</div>
 
                                 </div>
 
@@ -640,44 +632,47 @@ function App() {
                                 METRICS
                             ================================================= */}
 
-                            <div className="metric-grid">
+                            
+<div className="metric-grid">
+    <Metric
+        label="Skill Match"
+        value={breakdown.skill_match}
+    />
 
-                                <Metric
-                                    label="Skill Match"
-                                    value={
-                                        breakdown.skill_match
-                                    }
-                                />
+    <Metric
+        label="Semantic AI"
+        value={breakdown.semantic_match}
+    />
 
-                                <Metric
-                                    label="Semantic AI"
-                                    value={
-                                        breakdown.semantic_match
-                                    }
-                                />
+    <Metric
+        label="Keyword Similarity"
+        value={breakdown.tfidf_match}
+    />
 
-                                <Metric
-                                    label="Keyword Similarity"
-                                    value={
-                                        breakdown.tfidf_match
-                                    }
-                                />
+    {breakdown.experience_match != null && (
+        <Metric
+            label="Experience"
+            value={breakdown.experience_match}
+        />
+    )}
 
-                                <Metric
-                                    label="Experience"
-                                    value={
-                                        breakdown.experience_match
-                                    }
-                                />
+    {analysis?.experience?.score != null &&
+        breakdown.experience_match == null && (
+            <Metric
+                label="Experience"
+                value={analysis.experience.score}
+            />
+        )}
 
-                                <Metric
-                                    label="Project Relevance"
-                                    value={
-                                        breakdown.project_relevance
-                                    }
-                                />
-
-                            </div>
+    {Array.isArray(analysis?.projects) &&
+        analysis.projects.length > 0 &&
+        breakdown.project_relevance != null && (
+            <Metric
+                label="Project Relevance"
+                value={breakdown.project_relevance}
+            />
+        )}
+</div>
 
                         </section>
 
@@ -779,95 +774,70 @@ function App() {
                             </div>
 
 
-                            <div className="experience-grid">
+                            
+<div className="experience-grid">
 
+    <div className="experience-main">
+        <span className="card-label">
+            DETECTED EXPERIENCE
+        </span>
 
-                                <div className="experience-main">
+        <div className="experience-years">
+            {experience.resume_years == null
+                ? "—"
+                : Number(experience.resume_years).toFixed(2)}
 
-                                    <span className="card-label">
-                                        DETECTED EXPERIENCE
-                                    </span>
+            <span>years</span>
+        </div>
 
+        <p>
+            {experience.resume_years == null
+                ? "Experience data is unavailable."
+                : "Estimated experience detected from the submitted resume."}
+        </p>
+    </div>
 
-                                    <div className="experience-years">
+    <div className="experience-main">
+        <span className="card-label">
+            JOB REQUIREMENT
+        </span>
 
-                                        {experience.resume_years ?? 0}
+        <div className="experience-years">
+            {experience.required_years == null
+                ? "—"
+                : Number(experience.required_years).toFixed(2)}
 
-                                        <span>
-                                            years
-                                        </span>
+            {experience.required_years != null && (
+                <span>years</span>
+            )}
+        </div>
 
-                                    </div>
+        <p>
+            {experience.status === "not_required"
+                ? "No numeric experience requirement was specified."
+                : experience.required_years == null
+                    ? "The required experience could not be determined."
+                    : "Numeric experience requirement extracted from the job description."}
+        </p>
+    </div>
 
+    <div className="experience-status">
+        <span className="card-label">STATUS</span>
 
-                                    <p>
-                                        Experience detected from the
-                                        submitted resume.
-                                    </p>
+        <strong>
+            {String(experience.status || "unknown")
+                .replaceAll("_", " ")
+                .toUpperCase()}
+        </strong>
 
-                                </div>
+        <div className="status-line">
+            {experience.score == null
+                ? "Not scored"
+                : `${Number(experience.score).toFixed(1)}% alignment`}
+        </div>
+    </div>
 
-
-                                <div className="experience-main">
-
-                                    <span className="card-label">
-                                        JOB REQUIREMENT
-                                    </span>
-
-
-                                    <div className="experience-years">
-
-                                        {experience.required_years ?? 0}
-
-                                        <span>
-                                            years
-                                        </span>
-
-                                    </div>
-
-
-                                    <p>
-                                        Experience requirement detected
-                                        from the job description.
-                                    </p>
-
-                                </div>
-
-
-                                <div className="experience-status">
-
-                                    <span className="card-label">
-                                        STATUS
-                                    </span>
-
-
-                                    <strong>
-
-                                        {String(
-                                            experience.status ||
-                                            "unknown"
-                                        )
-                                            .replaceAll(
-                                                "_",
-                                                " "
-                                            )
-                                            .toUpperCase()}
-
-                                    </strong>
-
-
-                                    <div className="status-line">
-
-                                        {Number(
-                                            experience.score ?? 0
-                                        ).toFixed(1)}
-                                        % alignment
-
-                                    </div>
-
-                                </div>
-
-                            </div>
+</div>
 
                         </section>
 

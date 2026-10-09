@@ -1,0 +1,33 @@
+
+[
+  {
+    "id": 101,
+    "label": "strong_match",
+    "resume_text": "EXPERIENCE\nSoftware Developer, 2024-2026\nBuilt REST APIs using Python and FastAPI, PostgreSQL databases, Docker containers and Git.\nPROJECTS\nBackend service: Developed and deployed APIs with Python, FastAPI, PostgreSQL and Docker.",
+    "job_description": "Backend Developer. Requirements: Python, FastAPI, PostgreSQL, Docker and Git. Responsibilities: Develop backend services and REST APIs."
+  },
+  {
+    "id": 102,
+    "label": "weak_match",
+    "resume_text": "EXPERIENCE\nGraphic Designer, 2023-2026\nCreated brand identities, posters and marketing materials using Photoshop and Illustrator.",
+    "job_description": "Backend Developer. Requirements: Python, FastAPI, PostgreSQL, Docker and Git. Responsibilities: Develop backend services and REST APIs."
+  },
+  {
+    "id": 103,
+    "label": "moderate_match",
+    "resume_text": "SKILLS\nPython, SQL, Pandas, NumPy\nPROJECTS\nCreated data analysis dashboards using Python and Pandas. Queried structured datasets with SQL.",
+    "job_description": "Data Analyst. Requirements: Python, SQL, Pandas, NumPy and Tableau. Responsibilities: Analyze datasets, create dashboards and communicate business insights."
+  },
+  {
+    "id": 104,
+    "label": "weak_match",
+    "resume_text": "EDUCATION\nBachelor of Mechanical Engineering\nSKILLS\nAutoCAD, SolidWorks, manufacturing and mechanical design.",
+    "job_description": "Frontend Developer. Requirements: JavaScript, React, HTML, CSS and Next.js. Responsibilities: Build responsive web applications."
+  },
+  {
+    "id": 105,
+    "label": "moderate_match",
+    "resume_text": "INTERNSHIP\nWeb Development Intern, 2025-2026\nUsed JavaScript and React to create UI components. Basic knowledge of Node.js; no professional backend experience.",
+    "job_description": "Full Stack Developer. Requirements: JavaScript, React, Node.js, Express and MongoDB. Responsibilities: Build frontend interfaces and backend APIs."
+  }
+]

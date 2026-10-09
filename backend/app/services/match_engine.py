@@ -111,6 +111,16 @@ def calculate_final_match(
         weight
         for _, weight in score_components.values()
     )
+    
+    scoring_metadata = {
+        "included_components": list(score_components.keys()),
+        "component_weights": {
+            name: weight
+            for name, (_, weight) in score_components.items()
+        },
+        "total_weight_before_normalization": round(total_weight, 4),
+        "weights_normalized": total_weight > 0 and total_weight != 1.0,
+    }
 
     content_alignment = (
     (semantic_score * 0.70)
@@ -145,7 +155,7 @@ def calculate_final_match(
 
     return {
         "match_score": final_score,
-
+        "scoring_metadata": scoring_metadata,
         "classification": classification,
              "match_quality": {
     "skill_coverage": skill_result["coverage"],

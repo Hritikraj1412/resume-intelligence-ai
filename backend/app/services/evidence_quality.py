@@ -50,37 +50,45 @@ def calculate_evidence_quality(
     responsibilities: list[str]
 ) -> dict:
 
+   
     # --------------------------------------------------
     # 1. Skill evidence
     # --------------------------------------------------
 
     required_set = {
-        skill.lower()
+        skill.strip().lower()
         for skill in required_skills
+        if skill and skill.strip()
     }
 
     resume_set = {
-        skill.lower()
+        skill.strip().lower()
         for skill in resume_skills
+        if skill and skill.strip()
     }
 
-    if required_set:
+    # Keep skill evidence consistent with skill_matcher.py.
+    compatibility = {
+        "sql": {"sql", "mysql", "postgresql"},
+    }
 
-        matched_skills = (
-            required_set.intersection(
-                resume_set
-            )
+    matched_skills = []
+
+    for required_skill in sorted(required_set):
+        acceptable_skills = compatibility.get(
+            required_skill,
+            {required_skill}
         )
 
-        skill_coverage = (
-            len(matched_skills)
-            / len(required_set)
-        ) * 100
+        if resume_set.intersection(acceptable_skills):
+            matched_skills.append(required_skill)
 
-    else:
-
-        skill_coverage = 0.0
-
+    skill_coverage = (
+        len(matched_skills) / len(required_set) * 100
+        if required_set
+        else 0.0
+    )
+    
     # --------------------------------------------------
     # 2. Experience relevance
     # --------------------------------------------------

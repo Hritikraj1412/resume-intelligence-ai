@@ -9,7 +9,8 @@
     ],
     "javascript": [
       "javascript",
-      "ecmascript"
+      "ecmascript",
+      "js"
     ],
     "typescript": [
       "typescript",

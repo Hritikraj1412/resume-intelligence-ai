@@ -1,185 +1,187 @@
 import re
 
 
-# --------------------------------------------------
-# EMAIL
-# --------------------------------------------------
+def clean_contact_text(text: str) -> str:
+    """
+    Clean common PDF/OCR artifacts while preserving useful contact data.
+    """
+    if not text:
+        return ""
 
-EMAIL_PATTERN = re.compile(
-    r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"
-)
+    text = text.replace("\u00a0", " ")
+    text = text.replace("©", " ")
+    text = text.replace("&", " ")
 
+    # Normalize whitespace
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n\s*\n+", "\n", text)
 
-# --------------------------------------------------
-# PHONE
-# --------------------------------------------------
-
-PHONE_PATTERN = re.compile(
-    r"(?<!\d)"
-    r"(?:\+91[\s-]?)?"
-    r"[6-9]\d{9}"
-    r"(?!\d)"
-)
+    return text.strip()
 
 
-# --------------------------------------------------
-# LINKEDIN
-# --------------------------------------------------
-
-LINKEDIN_PATTERN = re.compile(
-    r"(?:https?://)?(?:www\.)?linkedin\.com/in/[A-Za-z0-9._-]+",
-    re.IGNORECASE
-)
+def extract_email(text: str):
+    match = re.search(
+        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b",
+        text
+    )
+    return match.group(0) if match else None
 
 
-# --------------------------------------------------
-# GITHUB
-# --------------------------------------------------
+def extract_phone(text: str):
+    """
+    Extract Indian/international phone numbers even when PDF extraction
+    inserts spaces inside the number.
+    """
 
-GITHUB_PATTERN = re.compile(
-    r"(?:https?://)?(?:www\.)?github\.com/[A-Za-z0-9._-]+",
-    re.IGNORECASE
-)
+    # First normalize spaces around digit sequences
+    candidates = re.findall(
+        r"(?:\+?\d[\d\s().-]{8,}\d)",
+        text
+    )
 
+    for candidate in candidates:
+        digits = re.sub(r"\D", "", candidate)
 
-def extract_email(text: str) -> str | None:
-    match = EMAIL_PATTERN.search(text)
+        # Indian mobile number
+        if len(digits) == 10 and digits[0] in "6789":
+            return digits
 
-    if match:
-        return match.group(0)
+        # Indian number with country code
+        if len(digits) == 12 and digits.startswith("91"):
+            return "+" + digits
 
-    return None
-
-
-def extract_phone(text: str) -> str | None:
-    match = PHONE_PATTERN.search(text)
-
-    if match:
-        return match.group(0)
+        # Generic international number
+        if 10 <= len(digits) <= 15:
+            return "+" + digits
 
     return None
 
 
-def extract_linkedin(text: str) -> str | None:
-    match = LINKEDIN_PATTERN.search(text)
-
-    if match:
-        return match.group(0)
-
-    return None
-
-
-def extract_github(text: str) -> str | None:
-    match = GITHUB_PATTERN.search(text)
-
-    if match:
-        return match.group(0)
-
-    return None
-
-
-def extract_name(text: str) -> str | None:
-
+def extract_name(text: str):
+    """
+    Usually the candidate name is near the beginning of the resume.
+    """
     lines = [
         line.strip()
         for line in text.splitlines()
         if line.strip()
     ]
 
-    if not lines:
-        return None
+    ignored = {
+        "resume",
+        "cv",
+        "curriculum vitae",
+        "contact",
+        "summary",
+        "profile",
+        "undergrad student",
+        "student",
+    }
 
-    # Look at the first few lines because
-    # the candidate's name is normally near
-    # the top of a resume.
+    for line in lines[:10]:
+        cleaned = re.sub(r"[^A-Za-z .'-]", "", line).strip()
 
-    for line in lines[:8]:
-
-        # Ignore obvious contact information
-        if EMAIL_PATTERN.search(line):
+        if not cleaned:
             continue
 
-        if PHONE_PATTERN.search(line):
+        if cleaned.lower() in ignored:
             continue
 
-        if LINKEDIN_PATTERN.search(line):
-            continue
-
-        if GITHUB_PATTERN.search(line):
-            continue
-
-        # Ignore common resume titles
-        if line.lower() in {
-            "resume",
-            "curriculum vitae",
-            "cv",
-            "full stack developer",
-            "software developer",
-            "web developer",
-            "computer science student"
-        }:
-            continue
-
-        # A name normally contains letters/spaces
-        # and is relatively short.
-
-        if (
-            2 <= len(line.split()) <= 5
-            and len(line) <= 60
-            and re.fullmatch(
-                r"[A-Za-z][A-Za-z .'-]*",
-                line
-            )
-        ):
-            return line
+        # Avoid sentences
+        if len(cleaned.split()) <= 5:
+            return cleaned.upper()
 
     return None
 
 
-def extract_location(text: str) -> str | None:
 
-    lines = [
-        line.strip()
-        for line in text.splitlines()
-        if line.strip()
-    ]
 
-    location_keywords = [
-        "ahmedabad",
-        "gujarat",
-        "delhi",
-        "mumbai",
-        "pune",
-        "bangalore",
-        "bengaluru",
-        "hyderabad",
-        "chennai",
-        "kolkata",
-        "jaipur",
-        "surat",
-        "vadodara"
-    ]
+def extract_location(text: str):
+    """Extract labelled or unlabelled locations from resume contact lines."""
 
-    for line in lines[:15]:
+    # Strategy 1: Explicitly labelled location or address.
+    match = re.search(
+        r"(?:location|address)\s*[:\-]\s*([^\n]+)",
+        text,
+        flags=re.IGNORECASE
+    )
 
-        line_lower = line.lower()
+    if match:
+        location = match.group(1).strip()
+        location = re.split(
+            r"\b(?:nationality|age|phone|email|linkedin|github)\b",
+            location,
+            flags=re.IGNORECASE
+        )[0].strip(" ,:-|")
 
-        if any(
-            keyword in line_lower
-            for keyword in location_keywords
-        ):
-            return line
+        if location:
+            return location
+
+    # Strategy 2: Split early resume lines into contact fields.
+    for line in text.splitlines()[:15]:
+        parts = re.split(r"\s*[|•]\s*", line.strip())
+
+        for part in parts:
+            candidate = part.strip(" ,:-|")
+
+            if not re.fullmatch(
+                r"[A-Za-z .'-]+,\s*[A-Za-z .'-]+",
+                candidate
+            ):
+                continue
+
+            lowered = candidate.lower()
+
+            if any(word in lowered for word in (
+                "linkedin", "github", "university", "college",
+                "email", "phone", "software developer",
+                "computer science"
+            )):
+                continue
+
+            return candidate
 
     return None
 
 
-def extract_contact_information(text: str) -> dict:
+def extract_github(text: str):
+    """Extract a GitHub profile URL."""
+    match = re.search(
+        r"(?:https?://)?(?:www\.)?github\.com/[A-Za-z0-9_-]+",
+        text,
+        flags=re.IGNORECASE
+    )
+
+    return match.group(0) if match else None
+
+
+def extract_linkedin(text: str):
+    """Extract LinkedIn URLs even when a PDF splits them across lines."""
+
+    normalized = re.sub(r"\s+", "", text)
+
+    match = re.search(
+        r"(?:https?://)?(?:www\.)?linkedin\.com/in/"
+        r"[A-Za-z0-9_-]+/?",
+        normalized,
+        flags=re.IGNORECASE
+    )
+
+    return match.group(0) if match else None
+
+
+def extract_contact_information(text: str):
+    """
+    Extract basic contact information from resume text.
+    """
+
+    cleaned_text = clean_contact_text(text)
 
     return {
-        "name": extract_name(text),
-        "email": extract_email(text),
-        "phone": extract_phone(text),
-        "location": extract_location(text),
-        "linkedin": extract_linkedin(text),
-        "github": extract_github(text)
+        "name": extract_name(cleaned_text),
+        "email": extract_email(cleaned_text),
+        "phone": extract_phone(cleaned_text),
+        "location": extract_location(cleaned_text),
+        "linkedin": extract_linkedin(cleaned_text),
+        "github": extract_github(cleaned_text),
     }

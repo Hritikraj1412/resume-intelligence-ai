@@ -1,124 +1,90 @@
+
 import re
 
 
 MONTHS = (
-    "jan|january|feb|february|mar|march|apr|april|"
-    "may|jun|june|jul|july|aug|august|sep|sept|"
-    "september|oct|october|nov|november|dec|december"
+    r"jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|"
+    r"may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|"
+    r"sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?"
 )
 
+MONTH_YEAR = rf"(?:{MONTHS})\.?\s*,?\s*\d{{4}}"
+NUMERIC_DATE = r"(?:0?[1-9]|1[0-2])[/.-]\d{4}"
+YEAR = r"\d{4}"
+DATE_POINT = rf"(?:{MONTH_YEAR}|{NUMERIC_DATE}|{YEAR}|present|current|now)"
 
 DATE_RANGE_PATTERN = re.compile(
-    rf"""
-    (?:
-        {MONTHS}
-    )
-    \.?
-    \s*
-    ,?
-    \s*
-    \d{{4}}
-    \s*
-    (?:-|–|—|to)
-    \s*
-    (?:
-        {MONTHS}
-    )
-    \.?
-    \s*
-    ,?
-    \s*
-    (?:
-        \d{{4}}|present|current
-    )
-    """,
-    re.IGNORECASE | re.VERBOSE
+    rf"^\s*({DATE_POINT})\s*(?:-|–|—|\bto\b)\s*({DATE_POINT})\s*$",
+    re.IGNORECASE,
 )
 
-
 JOB_TITLE_KEYWORDS = [
-    "developer",
-    "engineer",
-    "intern",
-    "analyst",
-    "designer",
-    "manager",
-    "consultant",
-    "software",
-    "frontend",
-    "backend",
-    "full stack",
-    "data scientist",
-    "data analyst"
+    "developer", "engineer", "intern", "analyst", "designer",
+    "manager", "consultant", "software", "frontend", "front-end",
+    "backend", "back-end", "full stack", "full-stack",
+    "data scientist", "data analyst", "programmer", "tester",
+    "qa", "quality assurance", "administrator", "architect",
+    "technician", "accountant", "researcher", "trainee",
+    "devops", "product owner", "product manager",
 ]
-
 
 COMPANY_KEYWORDS = [
-    "technologies",
-    "technology",
-    "solutions",
-    "systems",
-    "services",
-    "company",
-    "corporation",
-    "inc",
-    "ltd",
-    "pvt",
-    "llp",
-    "labs",
-    "studio",
-    "samurai"
+    "technologies", "technology", "solutions", "systems",
+    "services", "company", "corporation", "inc", "ltd",
+    "pvt", "llp", "labs", "studio", "samurai", "india",
 ]
+
+SECTION_HEADERS = {
+    "experience",
+    "work experience",
+    "professional experience",
+    "employment history",
+    "internships",
+}
+
+DESCRIPTION_STARTERS = (
+    "developed ", "built ", "created ", "worked ",
+    "responsible for ", "designed ", "implemented ",
+    "managed ", "assisted ", "maintained ", "worked on ",
+    "using ", "helped ", "contributed ",
+)
 
 
 def clean_line(text: str) -> str:
-    return re.sub(
-        r"\s+",
-        " ",
-        text.strip()
-    )
+    return re.sub(r"\s+", " ", text.strip())
 
 
 def is_date_range(text: str) -> bool:
-    """
-    Check whether a line contains a date range.
-    """
-
-    return bool(
-        DATE_RANGE_PATTERN.search(text)
-    )
+    return bool(DATE_RANGE_PATTERN.fullmatch(clean_line(text)))
 
 
 def looks_like_job_title(text: str) -> bool:
-    """
-    Detect likely job titles.
-    """
-
-    text_lower = text.lower().strip()
-
-    return any(
-        keyword in text_lower
-        for keyword in JOB_TITLE_KEYWORDS
-    )
+    value = clean_line(text).lower()
+    return any(keyword in value for keyword in JOB_TITLE_KEYWORDS)
 
 
 def looks_like_company(text: str) -> bool:
-    """
-    Detect likely company names.
-    """
-
-    text_lower = text.lower()
-
-    return any(
-        keyword in text_lower
-        for keyword in COMPANY_KEYWORDS
-    )
+    value = clean_line(text).lower()
+    return any(keyword in value for keyword in COMPANY_KEYWORDS)
 
 
-def extract_experience_entries(
-    experience_text: str
-) -> list[dict]:
+def is_description(text: str) -> bool:
+    value = clean_line(text).lower()
+    return value.startswith(DESCRIPTION_STARTERS)
 
+
+def split_title_company(line: str) -> tuple[str, str | None]:
+    """Split common 'Job Title | Company' or 'Job Title at Company' lines."""
+    parts = re.split(r"\s+\|\s+|\s+@\s+|\s+at\s+", clean_line(line), maxsplit=1, flags=re.IGNORECASE)
+
+    if len(parts) == 2 and looks_like_job_title(parts[0]):
+        return parts[0].strip(), parts[1].strip()
+
+    return clean_line(line), None
+
+
+def extract_experience_entries(experience_text: str) -> list[dict]:
+    """Extract dated work and internship entries from line-based resume layouts."""
     lines = [
         clean_line(line)
         for line in experience_text.splitlines()
@@ -127,103 +93,105 @@ def extract_experience_entries(
 
     entries = []
 
-    i = 0
-
-    while i < len(lines):
-
-        line = lines[i]
-
-        # --------------------------------------------------
-        # Pattern 1:
-        #
-        # Job Title
-        # Date
-        # Company
-        # --------------------------------------------------
-
-        if looks_like_job_title(line):
-
-            job_title = line
-            duration = ""
-            company = None
-
-            if (
-                i + 1 < len(lines)
-                and is_date_range(lines[i + 1])
-            ):
-                duration = lines[i + 1]
-
-            if (
-                i + 2 < len(lines)
-                and not looks_like_job_title(lines[i + 2])
-                and not is_date_range(lines[i + 2])
-            ):
-                company = lines[i + 2]
-
-            entries.append({
-                "job_title": job_title,
-                "company": company,
-                "duration": duration,
-                "description": "",
-                "confidence": (
-                    "high"
-                    if duration and company
-                    else "medium"
-                )
-            })
-
-            i += 3
+    for i, line in enumerate(lines):
+        if line.lower() in SECTION_HEADERS or is_date_range(line):
             continue
 
-        # --------------------------------------------------
-        # Pattern 2:
-        #
-        # Date
-        # Company
-        # Job Title
-        #
-        # This can happen because of PDF column layout.
-        # --------------------------------------------------
+        job_title, inline_company = split_title_company(line)
 
-        if is_date_range(line):
+        if not looks_like_job_title(job_title):
+            continue
 
-            duration = line
-            company = None
-            job_title = None
+        # Find a nearby date range, preferably after the title.
+        date_index = None
+        for j in range(i + 1, min(i + 4, len(lines))):
+            if is_date_range(lines[j]):
+                date_index = j
+                break
 
-            if i + 1 < len(lines):
-                possible_company = lines[i + 1]
+            # Stop if another likely job title starts first.
+            if looks_like_job_title(split_title_company(lines[j])[0]):
+                break
 
-                if not looks_like_job_title(
-                    possible_company
+        # Also support date -> title layouts.
+        if date_index is None:
+            for j in range(max(0, i - 3), i):
+                if is_date_range(lines[j]):
+                    date_index = j
+                    break
+
+        if date_index is None:
+            continue
+
+        company = inline_company
+        description_lines = []
+
+        # If company is not inline, inspect nearby lines for a plausible company.
+        if not company:
+            candidate_indices = (
+                list(range(date_index + 1, min(date_index + 3, len(lines)))
+                     if date_index < i else range(i + 1, min(i + 3, len(lines))))
+            )
+
+            for j in candidate_indices:
+                candidate = lines[j]
+
+                if j == i or is_date_range(candidate):
+                    continue
+
+                if candidate.lower() in SECTION_HEADERS:
+                    continue
+
+                if looks_like_job_title(split_title_company(candidate)[0]):
+                    continue
+
+                if is_description(candidate):
+                    description_lines.append(candidate)
+                    continue
+
+                if looks_like_company(candidate) or (
+                    date_index < i and j < i
                 ):
-                    company = possible_company
+                    company = candidate
+                    break
 
-            if i + 2 < len(lines):
-                possible_title = lines[i + 2]
+        # Collect nearby description text without crossing into another entry.
+        for j in range(date_index + 1, len(lines)):
+            candidate = lines[j]
 
-                if looks_like_job_title(
-                    possible_title
-                ):
-                    job_title = possible_title
+            if candidate.lower() in SECTION_HEADERS or is_date_range(candidate):
+                break
 
-            if job_title:
+            candidate_title, candidate_company = split_title_company(candidate)
+            if looks_like_job_title(candidate_title):
+                break
 
-                entries.append({
-                    "job_title": job_title,
-                    "company": company,
-                    "duration": duration,
-                    "description": "",
-                    "confidence": (
-                        "high"
-                        if company
-                        else "medium"
-                    )
-                })
-
-                i += 3
+            if candidate == company:
                 continue
 
-        i += 1
+            if is_description(candidate):
+                description_lines.append(candidate)
 
-    return entries
+        entries.append({
+            "job_title": job_title,
+            "company": company,
+            "duration": lines[date_index],
+            "description": " ".join(dict.fromkeys(description_lines)),
+            "confidence": "high" if company else "medium",
+        })
+
+    # Remove duplicate title/date/company combinations.
+    unique_entries = []
+    seen = set()
+
+    for entry in entries:
+        key = (
+            entry["job_title"].lower(),
+            entry["duration"].lower(),
+            (entry["company"] or "").lower(),
+        )
+        if key not in seen:
+            seen.add(key)
+            unique_entries.append(entry)
+
+    return unique_entries

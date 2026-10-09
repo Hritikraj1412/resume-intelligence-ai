@@ -1,4 +1,5 @@
 import json
+import sys
 from pathlib import Path
 
 from sklearn.metrics import (
@@ -35,10 +36,10 @@ LABELS = [
 ]
 
 
-def evaluate():
+def evaluate(dataset_file: Path = DATASET_FILE):
 
     with open(
-        DATASET_FILE,
+        dataset_file,
         "r",
         encoding="utf-8"
     ) as file:
@@ -408,4 +409,10 @@ def evaluate():
 
 
 if __name__ == "__main__":
-    evaluate()
+    dataset_file = (
+        Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else DATASET_FILE
+    )
+
+    evaluate(dataset_file)

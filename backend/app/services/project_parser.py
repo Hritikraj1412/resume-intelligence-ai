@@ -1,18 +1,14 @@
+
 import re
 
 from app.services.skill_extractor import extract_skills
 
 
 def clean_line(text: str) -> str:
-    return re.sub(
-        r"\s+",
-        " ",
-        text.strip()
-    )
+    return re.sub(r"\s+", " ", text.strip())
 
 
 def parse_project_line(line: str) -> dict:
-
     line = clean_line(line)
 
     if not line:
@@ -20,70 +16,60 @@ def parse_project_line(line: str) -> dict:
             "name": None,
             "description": "",
             "technologies": [],
-            "confidence": "low"
+            "confidence": "low",
         }
 
-    # --------------------------------------------------
-    # Split project name and description
-    #
-    # Example:
-    #
-    # Expense Tracker Web App :
-    # Built using React.js and Node.js
-    # --------------------------------------------------
-
-    parts = re.split(
-        r"\s*:\s*",
-        line,
-        maxsplit=1
-    )
+    # Split project name from the remaining content.
+    # Supports: "Project: description" and "Project — description".
+    parts = re.split(r"\s*:\s*|\s+[—–]\s+", line, maxsplit=1)
 
     if len(parts) == 2:
-
         name = parts[0].strip()
-        description = parts[1].strip()
-
+        remainder = parts[1].strip()
     else:
-
         name = line
-        description = ""
+        remainder = ""
 
-    # --------------------------------------------------
-    # Detect technologies from the complete line
-    # --------------------------------------------------
-
+    # Extract technologies from the entire original line.
     technologies = extract_skills(line)
 
-    # --------------------------------------------------
-    # Confidence
-    # --------------------------------------------------
+    # Remove an initial technology list from the description.
+    description = remainder
+
+    if description:
+        description = re.sub(
+            r"^[,;:\s]*(?:built\s+using|using|built\s+with)\s+",
+            "",
+            description,
+            flags=re.IGNORECASE,
+        ).strip()
+
+        # If the remainder starts with a technology list,
+        # keep the descriptive text after the first semicolon.
+        if ";" in description:
+            first, rest = description.split(";", 1)
+            if extract_skills(first):
+                description = rest.strip()
+
+    # Avoid returning a technology list as the project description.
+    description = description.strip(" ;,") if description else ""
 
     if name and description and technologies:
-
         confidence = "high"
-
-    elif name and (
-        description or technologies
-    ):
-
+    elif name and (description or technologies):
         confidence = "medium"
-
     else:
-
         confidence = "low"
 
     return {
         "name": name,
         "description": description,
         "technologies": technologies,
-        "confidence": confidence
+        "confidence": confidence,
     }
 
 
-def extract_project_entries(
-    projects_text: str
-) -> list[dict]:
-
+def extract_project_entries(projects_text: str) -> list[dict]:
     lines = [
         clean_line(line)
         for line in projects_text.splitlines()
@@ -93,11 +79,9 @@ def extract_project_entries(
     entries = []
 
     for line in lines:
-
         project = parse_project_line(line)
 
         if project["name"]:
-
             entries.append(project)
 
     return entries

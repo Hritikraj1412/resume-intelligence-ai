@@ -2,7 +2,7 @@ from app.routes.analysis import router as analysis_router
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.services.contact_parser import extract_contact_information
-from app.services.pdf_parser import extract_text_from_pdf
+from app.services.document_ingestion import ingest_document
 from app.services.text_processor import clean_text
 from app.services.skill_extractor import extract_skills
 from app.services.resume_section_parser import extract_resume_sections
@@ -22,18 +22,27 @@ app = FastAPI(
 
 app.include_router(analysis_router)
 
-# CORS - allows React frontend to communicate with FastAPI
+
+import os
+
+# CORS - local development and deployed frontend
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+frontend_url = os.getenv("FRONTEND_URL", "").strip().rstrip("/")
+
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
     request: Request,
@@ -86,89 +95,139 @@ MAX_FILE_SIZE = 5 * 1024 * 1024
 @app.post("/api/resume/upload")
 async def upload_resume(file: UploadFile = File(...)):
 
-    # --------------------------------------------------
-    # 1. Validate file
-    # --------------------------------------------------
+    # ==================================================
+    # 1. VALIDATE FILE
+    # ==================================================
 
-    if not file.filename.lower().endswith(".pdf"):
+    if not file.filename:
         raise HTTPException(
             status_code=400,
-            detail="Only PDF files are supported."
+            detail="No file was provided."
         )
 
-    # --------------------------------------------------
-    # 2. Read PDF
-    # --------------------------------------------------
+    allowed_extensions = {
+        ".pdf",
+        ".docx",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp"
+    }
+
+    extension = (
+        "." + file.filename.split(".")[-1].lower()
+        if "." in file.filename
+        else ""
+    )
+
+    if extension not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Unsupported resume format. "
+                "Supported formats: PDF, DOCX, JPG, JPEG, PNG and WEBP."
+            )
+        )
+
+    # ==================================================
+    # 2. READ FILE
+    # ==================================================
 
     file_bytes = await file.read()
-
-    if len(file_bytes) > MAX_FILE_SIZE:
-      raise HTTPException(
-        status_code=413,
-        detail="PDF file is too large. Maximum allowed size is 5 MB."
-    )
 
     if not file_bytes:
         raise HTTPException(
             status_code=400,
-            detail="Uploaded PDF is empty."
+            detail="Uploaded file is empty."
         )
+
+    # ==================================================
+    # 3. FILE SIZE LIMIT
+    # ==================================================
+
+    if len(file_bytes) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail="Resume file is too large. Maximum allowed size is 5 MB."
+        )
+
+    # ==================================================
+    # 4. UNIVERSAL DOCUMENT INGESTION
+    # ==================================================
 
     try:
 
-        # --------------------------------------------------
-        # 3. Extract text
-        # --------------------------------------------------
+        document = ingest_document(
+            file_bytes=file_bytes,
+            filename=file.filename,
+            content_type=file.content_type
+        )
 
-        text = extract_text_from_pdf(file_bytes)
-
-        text = clean_text(text)
+        text = document["text"]
 
         if not text.strip():
             raise HTTPException(
                 status_code=400,
-                detail="Could not extract text from this PDF."
+                detail="Could not extract readable text from this resume."
             )
 
-        # --------------------------------------------------
-        # 4. Extract resume sections
-        # --------------------------------------------------
+        # ==================================================
+        # 5. EXTRACT RESUME SECTIONS
+        # ==================================================
 
         sections = extract_resume_sections(text)
 
-        # --------------------------------------------------
-        # 5. Extract skills
-        # --------------------------------------------------
+        # ==================================================
+        # 6. EXTRACT SKILLS
+        # ==================================================
 
         skills = extract_skills(text)
 
-        # --------------------------------------------------
-        # 6. Extract structured experience
-        # --------------------------------------------------
+        # ==================================================
+        # 7. EXTRACT EXPERIENCE
+        # ==================================================
 
         experience = extract_experience_entries(
-            sections["experience"]
+            sections.get("experience", "")
         )
+
+        # ==================================================
+        # 8. EXTRACT CONTACT
+        # ==================================================
 
         contact = extract_contact_information(text)
 
-        education = extract_education_entries(
-             sections["education"]
-       )
-         
-        projects = extract_project_entries(
-             sections["projects"]
-       )
+        # ==================================================
+        # 9. EXTRACT EDUCATION
+        # ==================================================
 
-        # --------------------------------------------------
-        # 7. Return structured resume data
-        # --------------------------------------------------
+        education = extract_education_entries(
+            sections.get("education", "")
+        )
+
+        # ==================================================
+        # 10. EXTRACT PROJECTS
+        # ==================================================
+
+        projects = extract_project_entries(
+            sections.get("projects", "")
+        )
+
+        # ==================================================
+        # 11. RETURN STRUCTURED RESUME DATA
+        # ==================================================
 
         return {
             "filename": file.filename,
 
             "metadata": {
-                "characters": len(text)
+                "file_type": document["file_type"],
+                "content_type": document["content_type"],
+                "extraction_method": document["extraction_method"],
+                "ocr_used": document["ocr_used"],
+                "pages": document["pages"],
+                "characters": document["character_count"],
+                "extraction_quality": document["extraction_quality"]
             },
 
             "contact": contact,
@@ -176,7 +235,7 @@ async def upload_resume(file: UploadFile = File(...)):
             "education": education,
 
             "projects": projects,
-             
+
             "text": text,
 
             "skills": skills,
@@ -189,9 +248,21 @@ async def upload_resume(file: UploadFile = File(...)):
     except HTTPException:
         raise
 
+    except ValueError as error:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        )
+
     except Exception as error:
+
+        print(
+            f"Resume processing error: "
+            f"{type(error).__name__}: {error}"
+        )
 
         raise HTTPException(
             status_code=500,
-            detail=f"Resume processing failed: {str(error)}"
+            detail="Resume processing failed."
         )
