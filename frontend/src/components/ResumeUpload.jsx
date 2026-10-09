@@ -33,15 +33,23 @@ function ResumeUpload({ onResumeUploaded }) {
 
             onResumeUploaded(result);
 
-        } catch (err) {
+        
+     } catch (err) {
+         console.error("Resume upload failed:", {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+        url: err.config?.url,
+        baseURL: err.config?.baseURL,
+    });
 
-            console.error(err);
+    setError(
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        err.message ||
+        "Unable to process this resume."
+    );
 
-            setError(
-                err.response?.data?.message ||
-                err.response?.data?.detail ||
-                "Unable to process this resume."
-            );
 
         } finally {
 
