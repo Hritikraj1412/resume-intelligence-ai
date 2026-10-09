@@ -1,14 +1,17 @@
-from sentence_transformers import SentenceTransformer
+
+import os
+from functools import lru_cache
 
 MODEL_NAME = "all-MiniLM-L6-v2"
 
-_model = None
 
-
+@lru_cache(maxsize=1)
 def get_embedding_model():
-    global _model
+    """Load the embedding model only when semantic matching is enabled."""
 
-    if _model is None:
-        _model = SentenceTransformer(MODEL_NAME)
+    if os.getenv("DISABLE_SEMANTIC_MODEL", "false").lower() == "true":
+        return None
 
-    return _model
+    from sentence_transformers import SentenceTransformer
+
+    return SentenceTransformer(MODEL_NAME)

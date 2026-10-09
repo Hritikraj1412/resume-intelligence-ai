@@ -15,10 +15,8 @@ fastapi==0.142.2
 filelock==4.0.9
 fsspec==2026.9.0
 h11==0.16.0
-hf-xet==1.6.0
 httpcore==1.0.9
 httpx==0.28.1
-huggingface_hub==1.33.0
 idna==3.20
 Jinja2==3.1.6
 joblib==1.6.0
@@ -44,10 +42,8 @@ PyYAML==6.0.3
 regex==2026.9.29
 requests==2.34.2
 rich==15.0.0
-safetensors==0.8.0
 scikit-learn==1.9.1
 scipy==1.17.1
-sentence-transformers==6.1.0
 shellingham==1.5.4
 six==1.17.0
 smart_open==8.0.2
@@ -59,10 +55,7 @@ starlette==1.7.0
 sympy==1.14.0
 thinc==8.3.13
 threadpoolctl==3.7.0
-tokenizers==0.23.2
-torch==2.14.1
 tqdm==4.70.1
-transformers==5.18.0
 typer==0.27.2
 typing-inspection==0.4.4
 typing_extensions==4.16.0
